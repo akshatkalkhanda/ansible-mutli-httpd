@@ -1,0 +1,79 @@
+---
+##############################################################################
+# Common variables — override in host_vars/<hostname>.yml or on the command
+# line with -e "httpd_instance_count=10" for a per-host override.
+##############################################################################
+
+# ── Multi-HTTPD settings ─────────────────────────────────────────────────────
+
+# Number of independent httpd instances to create.
+# Each instance gets its own service (httpd1, httpd2, …) and listen port.
+httpd_instance_count: 3
+
+# The first instance binds on this port; subsequent instances increment by 1.
+# e.g. with base_port=8080 and count=3 → ports 8080, 8081, 8082
+httpd_base_port: 8080
+
+# Filesystem root under which per-instance config dirs are created.
+# e.g.  /etc/httpd/instances/httpd1/httpd.conf
+httpd_config_root: /etc/httpd/instances
+
+# Filesystem root under which per-instance log dirs are created.
+# e.g.  /var/log/httpd/instances/httpd1/access_log
+httpd_log_root: /var/log/httpd/instances
+
+# DocumentRoot shared by all instances (same content served by each).
+httpd_doc_root: /var/www/html
+
+httpd_server_admin: webmaster@localhost
+
+# MPM settings (used in mpm_event and mpm_prefork IfModule sections)
+httpd_mpm_module: mpm_event
+httpd_start_servers: 2
+httpd_min_spare_threads: 25
+httpd_max_spare_threads: 75
+httpd_threads_per_child: 25
+httpd_max_request_workers: 150
+httpd_max_connections_per_child: 0
+
+httpd_keepalive: "On"
+httpd_keepalive_timeout: 5
+httpd_max_keepalive_requests: 100
+httpd_timeout: 300
+
+# ── HAProxy settings ─────────────────────────────────────────────────────────
+
+# Port HAProxy listens on for HTTPS traffic.
+haproxy_frontend_port: 443
+
+# Combined PEM file: full cert chain + private key (HAProxy format).
+# Example: /etc/ssl/private/mysite.pem
+haproxy_ssl_cert: /etc/ssl/certs/server.pem
+
+# Load-balancing algorithm: roundrobin | leastconn | source | uri | random
+haproxy_balance: roundrobin
+
+# Health check tuning
+haproxy_health_check_interval: 2000   # ms between checks
+haproxy_health_check_fall: 3          # consecutive failures before marking DOWN
+haproxy_health_check_rise: 2          # consecutive successes before marking UP
+
+haproxy_timeout_connect: 5s
+haproxy_timeout_client: 30s
+haproxy_timeout_server: 30s
+haproxy_maxconn: 50000
+
+# HAProxy stats page (disabled by default).
+# To enable, set haproxy_stats_enabled: true AND provide credentials.
+# The stats page binds to 127.0.0.1 only (loopback) even when enabled.
+haproxy_stats_enabled: false
+haproxy_stats_port: 8404
+haproxy_stats_uri: /stats
+haproxy_stats_refresh: 10
+haproxy_stats_user: ""      # Must be set when haproxy_stats_enabled: true
+haproxy_stats_password: ""  # Must be set when haproxy_stats_enabled: true
+haproxy_stats_admin: false  # Set true only when explicitly needed
+
+# HTTP-to-HTTPS redirect (set haproxy_http_redirect: false to disable)
+haproxy_http_redirect: true
+haproxy_http_port: 80

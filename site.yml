@@ -1,0 +1,9 @@
+---
+- name: Deploy multi-instance HTTPD + HAProxy
+  hosts: webservers
+  become: true
+  gather_facts: true
+
+  roles:
+    - role: multi_httpd
+    - role: haproxy

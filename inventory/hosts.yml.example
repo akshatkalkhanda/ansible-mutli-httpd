@@ -1,0 +1,19 @@
+---
+all:
+  children:
+    webservers:
+      hosts:
+        web01.example.com:
+          ansible_user: ec2-user          # change to your SSH user
+          # ansible_ssh_private_key_file: ~/.ssh/my_key.pem
+
+        web02.example.com:
+          ansible_user: ec2-user
+          # Per-host override: run 10 httpd instances on this server
+          httpd_instance_count: 10
+
+      vars:
+        # Variables here apply to all hosts in webservers.
+        # They override group_vars/all.yml and are overridden by host_vars.
+        httpd_instance_count: 3
+        haproxy_ssl_cert: /etc/ssl/certs/server.pem

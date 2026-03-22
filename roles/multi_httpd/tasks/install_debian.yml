@@ -1,0 +1,24 @@
+---
+- name: Install Apache HTTPD on Debian/Ubuntu
+  ansible.builtin.apt:
+    name:
+      - apache2
+      - apache2-utils
+    state: present
+    update_cache: true
+
+- name: Disable the default apache2 service (instances replace it)
+  ansible.builtin.systemd:
+    name: apache2
+    state: stopped
+    enabled: false
+  ignore_errors: true
+
+- name: Set OS-specific httpd variables for Debian family
+  ansible.builtin.set_fact:
+    httpd_binary: /usr/sbin/apache2
+    httpd_run_user: www-data
+    httpd_run_group: www-data
+    httpd_server_root: /etc/apache2
+    httpd_modules_dir: /usr/lib/apache2/modules
+    httpd_mime_types_file: /etc/mime.types

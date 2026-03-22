@@ -1,0 +1,27 @@
+---
+- name: Install Apache HTTPD on RHEL/CentOS/Rocky/Alma (dnf)
+  ansible.builtin.dnf:
+    name:
+      - httpd
+      - httpd-tools
+      - mod_ssl
+    state: present
+  when: ansible_distribution_major_version | int >= 8
+
+- name: Install Apache HTTPD on RHEL/CentOS 7 (yum)
+  ansible.builtin.yum:
+    name:
+      - httpd
+      - httpd-tools
+      - mod_ssl
+    state: present
+  when: ansible_distribution_major_version | int == 7
+
+- name: Set OS-specific httpd variables for RHEL family
+  ansible.builtin.set_fact:
+    httpd_binary: /usr/sbin/httpd
+    httpd_run_user: apache
+    httpd_run_group: apache
+    httpd_server_root: /etc/httpd
+    httpd_modules_dir: /usr/lib64/httpd/modules
+    httpd_mime_types_file: /etc/mime.types

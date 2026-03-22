@@ -1,0 +1,26 @@
+---
+httpd_instance_count: 3
+
+httpd_base_port: 8080
+
+httpd_config_root: /etc/httpd/instances
+
+httpd_log_root: /var/log/httpd/instances
+
+httpd_doc_root: /var/www/html
+
+httpd_server_admin: webmaster@localhost
+
+httpd_keepalive: "On"
+httpd_keepalive_timeout: 5
+httpd_max_keepalive_requests: 100
+
+httpd_timeout: 300
+
+httpd_mpm_module: mpm_event
+httpd_start_servers: 2
+httpd_min_spare_threads: 25
+httpd_max_spare_threads: 75
+httpd_threads_per_child: 25
+httpd_max_request_workers: 150
+httpd_max_connections_per_child: 0

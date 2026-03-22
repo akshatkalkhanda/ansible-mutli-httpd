@@ -1,0 +1,108 @@
+---
+- name: Include OS-family specific install tasks
+  ansible.builtin.include_tasks: "install_{{ ansible_os_family | lower }}.yml"
+
+- name: Create per-instance config root directory
+  ansible.builtin.file:
+    path: "{{ httpd_config_root }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create per-instance log root directory
+  ansible.builtin.file:
+    path: "{{ httpd_log_root }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create per-instance config directories
+  ansible.builtin.file:
+    path: "{{ httpd_config_root }}/httpd{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ range(1, httpd_instance_count | int + 1) | list }}"
+
+- name: Create per-instance log directories
+  ansible.builtin.file:
+    path: "{{ httpd_log_root }}/httpd{{ item }}"
+    state: directory
+    owner: "{{ httpd_run_user }}"
+    group: "{{ httpd_run_group }}"
+    mode: "0755"
+  loop: "{{ range(1, httpd_instance_count | int + 1) | list }}"
+
+- name: Create per-instance run (pid) directories
+  ansible.builtin.file:
+    path: "/run/httpd{{ item }}"
+    state: directory
+    owner: "{{ httpd_run_user }}"
+    group: "{{ httpd_run_group }}"
+    mode: "0755"
+  loop: "{{ range(1, httpd_instance_count | int + 1) | list }}"
+
+- name: Render per-instance systemd service unit
+  ansible.builtin.template:
+    src: httpd_instance.service.j2
+    dest: "/etc/systemd/system/httpd{{ item }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ range(1, httpd_instance_count | int + 1) | list }}"
+  register: httpd_service_units
+
+- name: Reload systemd when any service unit changed
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: httpd_service_units.changed
+
+- name: Render per-instance httpd config
+  ansible.builtin.template:
+    src: httpd_instance.conf.j2
+    dest: "{{ httpd_config_root }}/httpd{{ item }}/httpd.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ range(1, httpd_instance_count | int + 1) | list }}"
+  register: httpd_configs
+
+- name: Build list of instance numbers that need restarting
+  ansible.builtin.set_fact:
+    httpd_instances_to_restart: >-
+      {{
+        (
+          httpd_configs.results
+          | selectattr('changed')
+          | map(attribute='item')
+          | list
+          +
+          httpd_service_units.results
+          | selectattr('changed')
+          | map(attribute='item')
+          | list
+        ) | unique | sort
+      }}
+
+- name: Validate httpd config for each changed instance before restart
+  ansible.builtin.command:
+    cmd: "{{ httpd_binary }} -t -f {{ httpd_config_root }}/httpd{{ item }}/httpd.conf"
+  loop: "{{ httpd_instances_to_restart }}"
+  changed_when: false
+
+- name: Enable and start each httpd instance
+  ansible.builtin.systemd:
+    name: "httpd{{ item }}"
+    state: started
+    enabled: true
+    daemon_reload: false
+  loop: "{{ range(1, httpd_instance_count | int + 1) | list }}"
+
+- name: Restart only changed httpd instances (at most once each)
+  ansible.builtin.systemd:
+    name: "httpd{{ item }}"
+    state: restarted
+  loop: "{{ httpd_instances_to_restart }}"

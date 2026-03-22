@@ -1,0 +1,6 @@
+---
+- name: Install HAProxy on Debian/Ubuntu
+  ansible.builtin.apt:
+    name: haproxy
+    state: present
+    update_cache: true

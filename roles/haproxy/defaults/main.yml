@@ -1,0 +1,30 @@
+---
+haproxy_frontend_port: 443
+
+haproxy_ssl_cert: /etc/ssl/certs/server.pem
+
+haproxy_balance: roundrobin
+
+haproxy_httpd_base_port: "{{ httpd_base_port }}"
+haproxy_httpd_instance_count: "{{ httpd_instance_count }}"
+
+haproxy_health_check_interval: 2000
+haproxy_health_check_fall: 3
+haproxy_health_check_rise: 2
+
+haproxy_timeout_connect: 5s
+haproxy_timeout_client: 30s
+haproxy_timeout_server: 30s
+
+haproxy_maxconn: 50000
+
+haproxy_stats_enabled: false
+haproxy_stats_port: 8404
+haproxy_stats_uri: /stats
+haproxy_stats_refresh: 10
+haproxy_stats_user: ""
+haproxy_stats_password: ""
+haproxy_stats_admin: false
+
+haproxy_http_redirect: true
+haproxy_http_port: 80

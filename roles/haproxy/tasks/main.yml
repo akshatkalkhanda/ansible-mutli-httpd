@@ -1,0 +1,39 @@
+---
+- name: Assert stats credentials are set when stats is enabled
+  ansible.builtin.assert:
+    that:
+      - haproxy_stats_user | length > 0
+      - haproxy_stats_password | length > 0
+    fail_msg: >
+      haproxy_stats_enabled is true but haproxy_stats_user and/or
+      haproxy_stats_password are empty. Set both variables before enabling
+      the stats dashboard to prevent unauthenticated access.
+  when: haproxy_stats_enabled | bool
+
+- name: Include OS-family specific install tasks
+  ansible.builtin.include_tasks: "install_{{ ansible_os_family | lower }}.yml"
+
+- name: Ensure HAProxy config directory exists
+  ansible.builtin.file:
+    path: /etc/haproxy
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Render HAProxy configuration
+  ansible.builtin.template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: "0644"
+    validate: haproxy -f %s -c -q
+  notify: reload haproxy
+
+- name: Enable and start HAProxy
+  ansible.builtin.systemd:
+    name: haproxy
+    state: started
+    enabled: true
+    daemon_reload: true

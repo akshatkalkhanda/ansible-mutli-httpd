@@ -1,0 +1,20 @@
+---
+- name: Install HAProxy on RHEL/CentOS/Rocky/Alma (dnf)
+  ansible.builtin.dnf:
+    name: haproxy
+    state: present
+  when: ansible_distribution_major_version | int >= 8
+
+- name: Install HAProxy on RHEL/CentOS 7 (yum)
+  ansible.builtin.yum:
+    name: haproxy
+    state: present
+  when: ansible_distribution_major_version | int == 7
+
+- name: Allow HAProxy to bind any port (SELinux)
+  ansible.posix.seboolean:
+    name: haproxy_connect_any
+    state: true
+    persistent: true
+  when: ansible_selinux.status == "enabled"
+  ignore_errors: true
