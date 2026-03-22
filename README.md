@@ -1,5 +1,8 @@
 # Ansible: Multi-HTTPD + HAProxy
 
+**Author:** Akshat
+**Email:** akshatkalkhanda@gmail.com
+
 Deploys **N independent Apache HTTPD instances** (overcoming the single-process thread limit) fronted by **HAProxy** as an HTTPS load balancer.
 
 ## Problem This Solves

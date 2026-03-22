@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  author: Akshat
+  author: Akshat <akshatkalkhanda@gmail.com>
   description: Deploy HAProxy as an HTTPS frontend load balancer for multiple httpd instances
   license: MIT
   min_ansible_version: "2.9"
